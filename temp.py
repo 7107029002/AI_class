@@ -10,7 +10,15 @@ train_y=train[:,1]
 plt.scatter(train_x,train_y)
 plt.show()
 
-train_z=-15.2+(0.1)*train_x
+mu=train_x.mean()
+sigma=train_x.std()
+def standardize(x):
+    return(x-mu)/sigma
+train_z=standardize(train_x)
+print(train_z)
+plt.scatter(train_z,train_y)
+plt.show()
+
 theta0=np.random.rand()
 theta1=np.random.rand()
 
@@ -37,8 +45,8 @@ while diff>1e-2:
     log='{}次: theta0={:.3f},theta1={:.3f},總分={:.4f}'
     print(log.format(count,theta0,theta1,diff))
 
-X=range(0,10)
+X=range(-2,3)
 Y=[(theta1*i+theta0) for i in X]
-plt.scatter(train_x,train_y,color='red')
+plt.scatter(train_z,train_y,color='red')
 plt.plot(X,Y,color='blue')
 plt.show()
