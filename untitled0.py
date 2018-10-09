@@ -1,66 +1,22 @@
+import numpy as np
 import pandas as pd
-from sklearn import datasets
-from sklearn import tree
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-cancer = datasets.load_breast_cancer()
+from sklearn import cross_validation, svm, preprocessing, metrics
 
-X = pd.DataFrame(cancer.data, columns=cancer.feature_names)
-target = pd.DataFrame(iris.target, columns=["target"])
-y = target["target"]
-
-XTrain, XTest, yTrain, yTest = train_test_split(X, y, test_size=0.33,
-                                                random_state=1)
-
-dtree = tree.DecisionTreeClassifier(max_depth = 8)
-dtree.fit(XTrain, yTrain)
-
-print("準確率:", dtree.score(XTest, yTest))
-print(dtree.predict(XTest))
-print(yTest.values)
-
-
-
-forest = RandomForestClassifier(criterion='entropy',
-                                n_estimators=10, 
-                                random_state=1,
-                                n_jobs=2)
-forest.fit(X_train, y_train)
-
-plot_decision_regions(X_combined, y_combined, 
-                      classifier=forest, test_idx=range(105,150))
-
-plt.xlabel('petal length [cm]')
-plt.ylabel('petal width [cm]')
-plt.legend(loc='upper left')
-plt.tight_layout()
-plt.show()
-
-feat_labels = df_wine.columns[1:]
-
-forest = RandomForestClassifier(n_estimators=10000,
-                                random_state=0,
-                                n_jobs=-1)
-
-forest.fit(X_train, y_train)
-importances = forest.feature_importances_
-
-indices = np.argsort(importances)[::-1]
-
-for f in range(X_train.shape[1]):
-    print("%2d) %-*s %f" % (f + 1, 30, 
-                            feat_labels[f], 
-                            importances[indices[f]]))
-
-plt.title('Feature Importances')
-plt.bar(range(X_train.shape[1]), 
-        importances[indices],
-        color='lightblue', 
-        align='center')
-
-plt.xticks(range(X_train.shape[1]), 
-           feat_labels, rotation=90)
-plt.xlim([-1, X_train.shape[1]])
-plt.tight_layout()
-plt.show()
-
+url = "https://storage.googleapis.com/2017_ithome_ironman/data/kaggle_titanic_train.csv"
+titanic_train = pd.read_csv(url)
+age_median = np.nanmedian(titanic_train["Age"])
+new_Age = np.where(titanic_train["Age"].isnull(), age_median, titanic_train["Age"])
+titanic_train["Age"] = new_Age
+label_encoder = preprocessing.LabelEncoder()
+encoded_Sex = label_encoder.fit_transform(titanic_train["Sex"])
+titanic_X = pd.DataFrame([titanic_train["Pclass"],
+                         encoded_Sex,
+                         titanic_train["Age"]
+]).T
+titanic_y = titanic_train["Survived"]
+train_X, test_X, train_y, test_y = cross_validation.train_test_split(titanic_X, titanic_y, test_size = 0.3)
+svc = svm.SVC()
+svc_fit = svc.fit(train_X, train_y)
+test_y_predicted = svc.predict(test_X)
+accuracy = metrics.accuracy_score(test_y, test_y_predicted)
+print(accuracy)
