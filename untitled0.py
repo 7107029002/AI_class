@@ -1,22 +1,45 @@
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from sklearn import cross_validation, svm, preprocessing, metrics
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
 
-url = "https://storage.googleapis.com/2017_ithome_ironman/data/kaggle_titanic_train.csv"
-titanic_train = pd.read_csv(url)
-age_median = np.nanmedian(titanic_train["Age"])
-new_Age = np.where(titanic_train["Age"].isnull(), age_median, titanic_train["Age"])
-titanic_train["Age"] = new_Age
-label_encoder = preprocessing.LabelEncoder()
-encoded_Sex = label_encoder.fit_transform(titanic_train["Sex"])
-titanic_X = pd.DataFrame([titanic_train["Pclass"],
-                         encoded_Sex,
-                         titanic_train["Age"]
-]).T
-titanic_y = titanic_train["Survived"]
-train_X, test_X, train_y, test_y = cross_validation.train_test_split(titanic_X, titanic_y, test_size = 0.3)
-svc = svm.SVC()
-svc_fit = svc.fit(train_X, train_y)
-test_y_predicted = svc.predict(test_X)
-accuracy = metrics.accuracy_score(test_y, test_y_predicted)
-print(accuracy)
+# Load the diabetes dataset
+diabetes = datasets.load_diabetes()
+
+
+# Use only one feature
+diabetes_X = diabetes.data[:, np.newaxis, 2]
+
+# Split the data into training/testing sets
+diabetes_X_train = diabetes_X[:-20]
+diabetes_X_test = diabetes_X[-20:]
+
+# Split the targets into training/testing sets
+diabetes_y_train = diabetes.target[:-20]
+diabetes_y_test = diabetes.target[-20:]
+
+# Create linear regression object
+regr = linear_model.LinearRegression()
+
+# Train the model using the training sets
+regr.fit(diabetes_X_train, diabetes_y_train)
+
+# Make predictions using the testing set
+diabetes_y_pred = regr.predict(diabetes_X_test)
+
+# The coefficients
+print('Coefficients: \n', regr.coef_)
+# The mean squared error
+print("Mean squared error: %.2f"
+      % mean_squared_error(diabetes_y_test, diabetes_y_pred))
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %.2f' % r2_score(diabetes_y_test, diabetes_y_pred))
+
+# Plot outputs
+plt.scatter(diabetes_X_test, diabetes_y_test,  color='black')
+plt.plot(diabetes_X_test, diabetes_y_pred, color='blue', linewidth=3)
+
+plt.xticks(())
+plt.yticks(())
+
+plt.show()
